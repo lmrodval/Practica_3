@@ -27,7 +27,7 @@
 
 module MIPS_Processor
 #(
-	parameter MEMORY_DEPTH = 250
+	parameter MEMORY_DEPTH = 256
 )
 
 (
@@ -98,17 +98,23 @@ wire [31:0] FromMuxToReg_wire;
 wire [31:0] FromMuxJumptoJr_wire;
 wire [31:0] Address_RAM;
 
+wire [2:0] WB_IDEX;
+wire [5:0] M_IDEX;
+wire [6:0] EX_IDEX;
+
+wire [2:0] WB_EXMEM;
+wire [5:0] M_EXMEM;
+
+wire [2:0] WB_MEMWB;
+
 integer ALUStatus;
 
 
 //******************************************************************/
 //******************************************************************/
-//******************************************************************/
-//******************************************************************/
-//******************************************************************/
-Control
-ControlUnit
-(
+/*
+Etapa de cada instruccion por Control Unit
+
 	.OP(Instruction_wire[31:26]),
 	.RegDst(Reg_Dst_wire),
 	.BranchNE(BranchNE_wire),
@@ -117,13 +123,57 @@ ControlUnit
 	.ALUSrc(ALUSrc_wire),
 	.RegWrite(RegWrite_wire),
 	.Jump(Jump_wire),
-	//Se usan para el jal
 	.MemtoReg(MemtoReg_wire),
 	.MemRead(MemRead_wire),
 	.MemWrite(MemWrite_wire)
-	
-	
-);
+
+ID/EX:
+
+WB:
+.MemtoReg(MemtoReg_wire),
+.RegWrite(RegWrite_wire),
+
+M:
+.BranchNE(BranchNE_wire),
+.BranchEQ(BranchEQ_wire),
+.MemRead(MemRead_wire),
+.MemWrite(MemWrite_wire),
+.Jump(Jump_wire),
+
+EX:
+.ALUOp(ALUOp_wire),
+.ALUSrc(ALUSrc_wire),
+.RegDst(Reg_Dst_wire),
+
+***********************************************
+***********************************************
+EX/MEM:
+
+WB:
+.MemtoReg(MemtoReg_wire),
+.RegWrite(RegWrite_wire),
+
+M:
+.BranchNE(BranchNE_wire),
+.BranchEQ(BranchEQ_wire),
+.MemRead(MemRead_wire),
+.MemWrite(MemWrite_wire),
+.Jump(Jump_wire),
+.Selector(JrControl_wire),
+
+***********************************************
+***********************************************
+MEM/WB:
+
+WB:
+.MemtoReg(MemtoReg_wire),
+.RegWrite(RegWrite_wire),
+
+
+*/
+//******************************************************************/ 
+//******************************************************************/
+//******************************************************************/
 
 PC_Register
 ProgramCounter
@@ -154,6 +204,28 @@ PC_Puls_4
 	.Result(Adder_to_Ader_wire)
 );
 
+
+
+//******************************************************************/
+//******************************************************************/
+/*																									Registro Pipeline Generico, aqui debe de ir IF/ID
+Register_Pipeline
+Register..
+(
+	.clk(clk),																						
+	.reset(reset),
+	.enable(),
+	.DataInput(),
+	.DataOutput()
+);
+*/
+
+
+//******************************************************************/
+//******************************************************************/
+//******************************************************************/
+
+
  ShiftLeft2 
  ShiftLefttoJump
 (   
@@ -164,37 +236,22 @@ PC_Puls_4
 
 
 
-//******************************************************************/
-//******************************************************************/
-//******************************************************************/
-//******************************************************************/
-//******************************************************************/
-/*Multiplexer2to1
-#(
-	.NBits(5)
-)
-MUX_ForRTypeAndIType
+Control
+ControlUnit
 (
-	.Selector(RegDst_wire),
-	.MUX_Data0(Instruction_wire[20:16]),
-	.MUX_Data1(Instruction_wire[15:11]),
-	
-	.MUX_Output(WriteRegister_wire)
-
-);*/
-
-Multiplexer3to1
-#(
-	.NBits(5)
-)
-MUX_ForRTypeAndIType
-(
-	.Selector(Reg_Dst_wire),
-	.MUX_Data0(Instruction_wire[20:16]),
-	.MUX_Data1(Instruction_wire[15:11]),
-	.MUX_Data2(31),
-	.MUX_Output(WriteRegister_wire)
+	.OP(Instruction_wire[31:26]),
+	.RegDst(Reg_Dst_wire),
+	.BranchNE(BranchNE_wire),
+	.BranchEQ(BranchEQ_wire),
+	.ALUOp(ALUOp_wire),
+	.ALUSrc(ALUSrc_wire),
+	.RegWrite(RegWrite_wire),
+	.Jump(Jump_wire),
+	.MemtoReg(MemtoReg_wire),
+	.MemRead(MemRead_wire),
+	.MemWrite(MemWrite_wire)
 );
+
 
 
 RegisterFile
@@ -202,7 +259,7 @@ Register_File
 (
 	.clk(clk),
 	.reset(reset),
-	.RegWrite(RegWrite_wire),
+	.RegWrite(WB_MEMWB[2]),
 	.WriteRegister(WriteRegister_wire),
 	.ReadRegister1(Instruction_wire[25:21]),
 	.ReadRegister2(Instruction_wire[20:16]),
@@ -220,29 +277,49 @@ SignExtendForConstants
 );
 
 
-Multiplexer2to1
-#(
-	.NBits(32)
-)
-MUX_ForReadDataAndInmediate
+
+
+//******************************************************************/
+//******************************************************************/
+/*																									Registro Pipeline Generico, aqui debe de ir ID/EX
+Register_Pipeline
+*/
+
+RegisterFilePipelineIDEX
+IDEX
 (
-	.Selector(ALUSrc_wire),
-	.MUX_Data0(ReadData2_wire),
-	.MUX_Data1(InmmediateExtend_wire),
+	.clk(clk),
+	.reset(reset),
 	
-	.MUX_Output(ReadData2OrInmmediate_wire)
+	//WB:
+	.MemtoReg(MemtoReg_wire),
+	.RegWrite(RegWrite_wire),
+	
+	//M:
+	.BranchNE(BranchNE_wire),
+	.BranchEQ(BranchEQ_wire),	
+	.MemRead(MemRead_wire),
+	.MemWrite(MemWrite_wire),
+	.Jump(Jump_wire),
+	.Jr(JrControl_wire),
+	
+	//EX:
+	.ALUOp(ALUOp_wire),
+	.ALUSrc(ALUSrc_wire),	
+	.RegDst(Reg_Dst_wire),
 
-);
-
-
- ShiftLeft2
- ShiftLefttoAdd
-(   
-	 .DataInput(InmmediateExtend_wire),
-    .DataOutput(ShiftLeft_Add_wire)
-
-);
-
+	.DataOutputWB_IDEX(WB_IDEX),
+	.DataOutputM_IDEX(M_IDEX),
+	.DataOutputEX_IDEX(EX_IDEX)
+		
+	);
+	
+	
+	//******************************************************************/
+	//******************************************************************/
+	//******************************************************************/
+	
+	
 
 Adder32bits
 Add_ForBranch
@@ -254,6 +331,126 @@ Add_ForBranch
 );
 
 
+
+ ShiftLeft2
+ ShiftLefttoAdd
+(   
+	 .DataInput(InmmediateExtend_wire),
+    .DataOutput(ShiftLeft_Add_wire)
+
+);
+
+
+ALU
+ArithmeticLogicUnit 
+(
+	.ALUOperation(ALUOperation_wire),
+	.A(ReadData1_wire),
+	.B(ReadData2OrInmmediate_wire),
+	.Zero(Zero_wire),
+	.ALUResult(ALUResult_wire),
+	.Shamt(Instruction_wire[10:6])
+);
+
+assign ALUResultOut = ALUResult_wire;
+
+
+Multiplexer2to1
+#(
+	.NBits(32)
+)
+MUX_ForReadDataAndInmediate
+(
+	.Selector(EX_IDEX[4]),
+	.MUX_Data0(ReadData2_wire),
+	.MUX_Data1(InmmediateExtend_wire),
+	
+	.MUX_Output(ReadData2OrInmmediate_wire)
+);
+
+
+ALUControl
+ArithmeticLogicUnitControl
+(
+	.ALUOp(EX_IDEX[3:0]),
+	.ALUFunction(Instruction_wire[5:0]),
+	
+	.JRControlOut(JrControl_wire),
+	.ALUOperation(ALUOperation_wire)
+);
+
+
+Multiplexer3to1
+#(
+	.NBits(5)
+)
+MUX_ForRTypeAndIType
+(
+	.Selector(EX_IDEX[6:5]),
+	.MUX_Data0(Instruction_wire[20:16]),
+	.MUX_Data1(Instruction_wire[15:11]),
+	.MUX_Data2(31),
+	.MUX_Output(WriteRegister_wire)
+);
+
+
+
+//******************************************************************/
+//******************************************************************/
+/*																									Registro Pipeline Generico, aqui debe de ir Ex/Mem
+Register_Pipeline
+
+*/
+RegisterFilePipelineEXMEM
+EXMEM
+(
+	.clk(clk),
+	.reset(reset),
+	
+	.DataInputWB_EXMEM(WB_IDEX),
+	.DataInputM_EXMEM(M_IDEX),
+
+	
+	.DataOutputWB_EXMEM(WB_EXMEM),
+	.DataOutputM_EXMEM(M_EXMEM)
+	
+	);
+	
+//******************************************************************/
+//******************************************************************/
+//******************************************************************/
+
+
+
+ANDGate
+BranchEQ
+(
+	.A(M_EXMEM[1]),
+	.B(Zero_wire),
+	
+	.C(BranchANDEQ)
+);
+
+ANDGate
+BranchNEQ
+(
+	.A(M_EXMEM[0]),
+	.B(~Zero_wire),
+	
+	
+	.C(BranchANDNEQ)
+);
+
+ORGate
+ORGate
+(
+	.A(BranchANDEQ),
+	.B(BranchANDNEQ),
+	
+	.C(BranchEQandNEQ)
+);
+
+	
 Multiplexer2to1
 #(
 	.NBits(32)
@@ -274,7 +471,7 @@ Multiplexer2to1
 )
 MUX_ForJump
 (
-	.Selector(Jump_wire),
+	.Selector(M_EXMEM[4]),
 	.MUX_Data0(BranchANDJump_wire),
 	.MUX_Data1(ShiftInstMemory),
 	
@@ -288,7 +485,7 @@ Multiplexer2to1
 )
 MUX_ForJr
 (
-	.Selector(JrControl_wire),
+	.Selector(M_EXMEM[5]),
 	.MUX_Data0(FromMuxJumptoJr_wire),
 	.MUX_Data1(ReadData1_wire),
 	
@@ -296,62 +493,6 @@ MUX_ForJr
 
 );
 
-
-ANDGate
-BranchEQ
-(
-	.A(BranchEQ_wire),
-	.B(Zero_wire),
-	
-	.C(BranchANDEQ)
-);
-
-ANDGate
-BranchNEQ
-(
-	.A(BranchNE_wire),
-	.B(~Zero_wire),
-	
-	
-	.C(BranchANDNEQ)
-);
-
-ORGate
-ORGate
-(
-	.A(BranchANDEQ),
-	.B(BranchANDNEQ),
-	
-	.C(BranchEQandNEQ)
-);
-
-
-
-
-ALUControl
-ArithmeticLogicUnitControl
-(
-	.ALUOp(ALUOp_wire),
-	.ALUFunction(Instruction_wire[5:0]),
-	
-	.JRControlOut(JrControl_wire),
-	.ALUOperation(ALUOperation_wire)
-);
-
-
-
-ALU
-ArithmeticLogicUnit 
-(
-	.ALUOperation(ALUOperation_wire),
-	.A(ReadData1_wire),
-	.B(ReadData2OrInmmediate_wire),
-	.Zero(Zero_wire),
-	.ALUResult(ALUResult_wire),
-	.Shamt(Instruction_wire[10:6])
-);
-
-assign ALUResultOut = ALUResult_wire;
 
 
 RAMAddress												
@@ -361,6 +502,8 @@ RAMAdd
 	.RAMAddress(Address_RAM)
 );
 
+
+
 DataMemory
 RAMDataMemory 
 (
@@ -368,9 +511,32 @@ RAMDataMemory
 	.Address(Address_RAM), //??
 	.clk(clk),
 	.ReadData(ReadDataRAM_wire), //7:0
-	.MemRead(MemRead_wire),
-	.MemWrite(MemWrite_wire)
+	.MemRead(M_EXMEM[2]),
+	.MemWrite(M_EXMEM[3])
 );
+
+
+//******************************************************************/
+//******************************************************************/
+/*																									Registro Pipeline Generico, aqui debe de ir MEM/WB
+Register_Pipeline
+*/
+RegisterFilePipelineMEMWB
+MEMWB
+(
+	.clk(clk),
+	.reset(reset),
+	
+	.DataInputWB_MEMWB(WB_EXMEM),
+
+	.DataOutputWB_MEMWB(WB_MEMWB)
+	
+	);
+//******************************************************************/
+//******************************************************************/
+//******************************************************************/
+
+
 
 Multiplexer3to1
 #(
@@ -378,7 +544,7 @@ Multiplexer3to1
 )
 MUX_ToRegisterFile
 (
-	.Selector(MemtoReg_wire),
+	.Selector(WB_MEMWB[1:0]),
 	.MUX_Data0(ALUResult_wire),
 	.MUX_Data1(ReadDataRAM_wire), /// RamtoMuxToReg
 	.MUX_Data2(Adder_to_Ader_wire),
@@ -386,7 +552,9 @@ MUX_ToRegisterFile
 );
 
 
+
 assign ShiftInstMemory = {{Adder_to_Ader_wire[31:28]},{ShiftLeft_Jump_wire1}};
 assign MemtoShift = {{6'b0},{Instruction_wire[25:0]}};	
+
 
 endmodule
