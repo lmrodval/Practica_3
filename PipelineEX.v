@@ -12,7 +12,7 @@ module PipelineEX
 
 Pipeline_Register
 #(
-	.N(4)
+	.N(4) //5?
 )
 RegisterALUOp
 (
@@ -34,6 +34,9 @@ RegisterALUSrc
 );
 
 Pipeline_Register
+#(
+	.N(3)
+)
 RegisterRegDst
 (
 	.clk(clk),																						

@@ -24,6 +24,9 @@ RegisterMemToReg
 );
 
 Pipeline_Register
+#(
+	.N(1)
+)
 RegisterRegWrite
 (
 	.clk(clk),																						

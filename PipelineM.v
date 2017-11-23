@@ -15,6 +15,9 @@ module PipelineM
 );
 
 Pipeline_Register
+#(
+	.N(1)
+)
 RegisterBNE
 (
 	.clk(clk),																						
@@ -25,6 +28,9 @@ RegisterBNE
 );
 
 Pipeline_Register
+#(
+	.N(1)
+)
 RegisterBEQ
 (
 	.clk(clk),																						
@@ -35,6 +41,9 @@ RegisterBEQ
 );
 
 Pipeline_Register
+#(
+	.N(1)
+)
 RegisterMemRead
 (
 	.clk(clk),																						
@@ -45,6 +54,9 @@ RegisterMemRead
 );
 
 Pipeline_Register
+#(
+	.N(1)
+)
 RegisterMemWrite
 (
 	.clk(clk),																						
@@ -55,6 +67,9 @@ RegisterMemWrite
 );
 
 Pipeline_Register
+#(
+	.N(1)
+)
 RegisterJump
 (
 	.clk(clk),																						
@@ -65,6 +80,9 @@ RegisterJump
 );
 
 Pipeline_Register
+#(
+	.N(1)
+)
 RegisterJr
 (
 	.clk(clk),																						
