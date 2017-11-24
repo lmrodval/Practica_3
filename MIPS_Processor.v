@@ -416,7 +416,7 @@ MUX_ForReadDataAndInmediate
 (
 	.Selector(EX_IDEX[4]),
 	.MUX_Data0(ReadData2_wire_IDEX),
-	.MUX_Data1(InmmediateExtend_wire),
+	.MUX_Data1(SignExtended_wire_IDEX),
 	
 	.MUX_Output(ReadData2OrInmmediate_wire)
 );
@@ -548,6 +548,8 @@ MUX_ForBranchAndJump			////Este mux fue modificado con fines de la tarea
 	.MUX_Output(BranchANDJump_wire)
 
 );
+
+
 
 Multiplexer2to1
 #(
