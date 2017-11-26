@@ -1,0 +1,27 @@
+module ForwardingUnit
+
+(
+	input clk,
+	input reset,
+
+	
+	//Control
+	
+	input [2:0] WB_EXMEM,
+	input [2:0] WB_MEMWB,
+
+
+	////Datos
+	input EXMEM_RegisterRd,
+	input MEMWB_RegisterRd,
+	input Rs,
+	input Rt,
+	
+	//Salida
+	
+	//Datos
+	
+	//Control
+	output ForwardA,
+	output ForwardB
+);
