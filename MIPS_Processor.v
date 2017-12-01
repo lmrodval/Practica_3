@@ -118,12 +118,16 @@ wire [31:0] SignExtended_wire_IDEX;
 wire [31:0] Instruction_wire_IDEX;
 
 
-
 wire [31:0] AddRes_wire_EXMEM;
 wire  ALUZero_wire_EXMEM;
 wire [31:0] ALURes_wire_EXMEM;
 wire [31:0] ReadData2_wire_EXMEM;
 wire [4:0] MuxItypeRtype_wire_EXMEM;
+
+wire [2:0] ForwardA_control_wire;
+wire [2:0] ForwardB_control_wire;
+wire [31:0]toALU_A_wire;
+wire [31:0]toALU_B_wire;
 
 wire [31:0] PCValue_wire_EXMEM;
 wire [31:0] ShiftInstMemory_EXMEM;
@@ -398,14 +402,48 @@ ArithmeticLogicUnit
 (
 	.Shamt(Instruction_wire_IDEX[10:6]),
 	.ALUOperation(ALUOperation_wire),
-	.A(ReadData1_wire_IDEX),
-	.B(ReadData2OrInmmediate_wire),
+	.A(toALU_A_wire),
+	.B(toALU_B_wire),
 	.Zero(Zero_wire),
 	.ALUResult(ALUResult_wire)
 	
 );
 
 assign ALUResultOut = ALUResult_wire;
+
+
+Multiplexer3to1
+MUX_toALU_A
+(
+	.Selector(ForwardA_control_wire),
+	.MUX_Data0(AddRes_wire_EXMEM),
+	.MUX_Data1(FromMuxToReg_wire),
+	.MUX_Data2(ReadData1_wire_IDEX),
+	.MUX_Output(toALU_A_wire)
+);
+
+Multiplexer3to1
+MUX_toALU_B
+(
+	.Selector(ForwardB_control_wire),
+	.MUX_Data0(AddRes_wire_EXMEM),
+	.MUX_Data1(FromMuxToReg_wire),
+	.MUX_Data2(ReadData2_wire_IDEX),
+	.MUX_Output(toALU_B_wire)
+);
+
+ForwardingUnit
+FU
+(
+	.WB_EXMEM(WB_EXMEM),
+	.WB_MEMWB(WB_MEMWB) ,
+	.EXMEM_RegisterRd(MuxItypeRtype_wire_EXMEM),
+	.MEMWB_RegisterRd(WriteRegister_wire_WB),
+	.IDEX_Rs (ReadData1_wire_IDEX),
+	.IDEX_Rt (ReadData2_wire_IDEX),
+	.ForwardA(ForwardA_control_wire),
+	.ForwardB(ForwardB_control_wire)
+);
 
 
 Multiplexer2to1
