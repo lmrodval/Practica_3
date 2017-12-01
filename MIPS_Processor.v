@@ -403,7 +403,7 @@ ArithmeticLogicUnit
 	.Shamt(Instruction_wire_IDEX[10:6]),
 	.ALUOperation(ALUOperation_wire),
 	.A(toALU_A_wire),
-	.B(toALU_B_wire),
+	.B(ReadData2OrInmmediate_wire),
 	.Zero(Zero_wire),
 	.ALUResult(ALUResult_wire)
 	
@@ -439,8 +439,8 @@ FU
 	.WB_MEMWB(WB_MEMWB) ,
 	.EXMEM_RegisterRd(MuxItypeRtype_wire_EXMEM),
 	.MEMWB_RegisterRd(WriteRegister_wire_WB),
-	.IDEX_Rs (ReadData1_wire_IDEX),
-	.IDEX_Rt (ReadData2_wire_IDEX),
+	.IDEX_Rs (Instruction_wire_IDEX[25:21]),
+	.IDEX_Rt (Instruction_wire_IDEX[20:16]),
 	.ForwardA(ForwardA_control_wire),
 	.ForwardB(ForwardB_control_wire)
 );
@@ -454,7 +454,7 @@ MUX_ForReadDataAndInmediate
 (
 	.Selector(EX_IDEX[4]),
 	.MUX_Data0(ReadData2_wire_IDEX),
-	.MUX_Data1(SignExtended_wire_IDEX),
+	.MUX_Data1(toALU_B_wire),
 	
 	.MUX_Output(ReadData2OrInmmediate_wire)
 );
@@ -509,7 +509,7 @@ EXMEM
 	.DataInputAddRes(Branch_target_address_wire),
 	.DataInputALUZero(Zero_wire),
 	.DataInputALURes(ALUResult_wire),
-	.DataInputReadData2(ReadData2_wire_IDEX),
+	.DataInputReadData2(toALU_B_wire),//antes ReadData2_wire_IDEX
 	.DataInputMuxItypeRtype(WriteRegister_wire), 
 	
 	.DataInputMUXForBranch(PCValue_wire_IDEX),
