@@ -29,11 +29,11 @@ module ForwardingUnit
 //Control for mux FA	
 always @ (WB_EXMEM, WB_MEMWB)
 	begin 
-		if (WB_EXMEM[2] == 1'b1 && (EXMEM_RegisterRd != 0) && EXMEM_RegisterRd == IDEX_Rs)
+		if (WB_EXMEM[2] == 1'b1 && EXMEM_RegisterRd != 0 && EXMEM_RegisterRd == IDEX_Rs)
 			begin
 			ForwardA = 2'b10;
 			end
-		else if (WB_MEMWB[2] == 1'b1 && EXMEM_RegisterRd != 0 && EXMEM_RegisterRd == IDEX_Rs)
+		else if (WB_MEMWB[2] == 1'b1 && EXMEM_RegisterRd != 0 && EXMEM_RegisterRd != IDEX_Rs && EXMEM_RegisterRd == IDEX_Rs)
 			begin
 			ForwardA = 2'b01;	
 			end
@@ -46,7 +46,7 @@ always @ (WB_EXMEM, WB_MEMWB)
 			begin
 			ForwardB = 2'b10;
 			end
-		else if (WB_MEMWB[2] == 1'b1 && EXMEM_RegisterRd != 0 && EXMEM_RegisterRd == IDEX_Rt)
+		else if (WB_MEMWB[2] == 1'b1 && EXMEM_RegisterRd != 0 && EXMEM_RegisterRd != IDEX_Rt && EXMEM_RegisterRd == IDEX_Rt)
 			begin
 			ForwardB = 2'b01;	
 			end
