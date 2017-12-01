@@ -453,8 +453,8 @@ Multiplexer2to1
 MUX_ForReadDataAndInmediate
 (
 	.Selector(EX_IDEX[4]),
-	.MUX_Data0(ReadData2_wire_IDEX),
-	.MUX_Data1(toALU_B_wire),
+	.MUX_Data0(toALU_B_wire),
+	.MUX_Data1(SignExtended_wire_IDEX),
 	
 	.MUX_Output(ReadData2OrInmmediate_wire)
 );
