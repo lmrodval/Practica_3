@@ -416,7 +416,7 @@ Multiplexer3to1
 MUX_toALU_A
 (
 	.Selector(ForwardA_control_wire),
-	.MUX_Data0(AddRes_wire_EXMEM),
+	.MUX_Data0(ALURes_wire_EXMEM),
 	.MUX_Data1(FromMuxToReg_wire),
 	.MUX_Data2(ReadData1_wire_IDEX),
 	.MUX_Output(toALU_A_wire)
@@ -426,7 +426,7 @@ Multiplexer3to1
 MUX_toALU_B
 (
 	.Selector(ForwardB_control_wire),
-	.MUX_Data0(AddRes_wire_EXMEM),
+	.MUX_Data0(ALURes_wire_EXMEM),
 	.MUX_Data1(FromMuxToReg_wire),
 	.MUX_Data2(ReadData2_wire_IDEX),
 	.MUX_Output(toALU_B_wire)

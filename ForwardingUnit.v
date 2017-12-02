@@ -31,11 +31,15 @@ always @ (WB_EXMEM, WB_MEMWB)
 	begin 
 		if (WB_EXMEM[2] == 1'b1 && EXMEM_RegisterRd != 0 && EXMEM_RegisterRd == IDEX_Rs)
 			begin
-			ForwardA = 2'b10;
+			ForwardA = 2'b00;
 			end
-		else if (WB_MEMWB[2] == 1'b1 && MEMWB_RegisterRd != 0 && EXMEM_RegisterRd != IDEX_Rs && EXMEM_RegisterRd == IDEX_Rs)
+		else if (WB_MEMWB[2] == 1'b1 && MEMWB_RegisterRd != 0 && EXMEM_RegisterRd != IDEX_Rs && MEMWB_RegisterRd == IDEX_Rs)
 			begin
 			ForwardA = 2'b01;	
+			end
+			else
+			begin
+			ForwardA = 2'b10;
 			end
 	end
 
@@ -44,11 +48,15 @@ always @ (WB_EXMEM, WB_MEMWB)
 	begin 
 		if (WB_EXMEM[2] == 1'b1 && (EXMEM_RegisterRd != 0) && EXMEM_RegisterRd == IDEX_Rt)
 			begin
-			ForwardB = 2'b10;
+			ForwardB = 2'b00;
 			end
 		else if (WB_MEMWB[2] == 1'b1 && MEMWB_RegisterRd != 0 && EXMEM_RegisterRd != IDEX_Rt && MEMWB_RegisterRd == IDEX_Rt)
 			begin
 			ForwardB = 2'b01;	
+			end
+			else
+			begin
+			ForwardB = 2'b10;
 			end
 	end
 endmodule
