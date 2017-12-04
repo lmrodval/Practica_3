@@ -18,6 +18,9 @@ always@(negedge reset or negedge clk) begin
 	else	
 		if(enable==1)
 			DataOutput<=DataInput;
+		else//(enable==0)
+			DataOutput <= 31'b0;
+			
 end
 
 endmodule

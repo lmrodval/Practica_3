@@ -17,19 +17,32 @@ module PC_Register
 	parameter N=32
 )
 (
+	input controlfromhazard_PC,
 	input clk,
 	input reset,
 	input  [N-1:0] NewPC,
+
 	
 	
 	output reg [N-1:0] PCValue
 );
+reg [31:0] res;
+
 
 always@(negedge reset or posedge clk) begin
 	if(reset==0)
 		PCValue <= 32'h400000;
 	else	
-		PCValue<=NewPC;
+		res <=NewPC;
+//end
+
+	begin
+		case(controlfromhazard_PC)
+			1'b0: PCValue <= res;
+			1'b1: PCValue <= res-4;
+		endcase
+	end
 end
 
 endmodule
+

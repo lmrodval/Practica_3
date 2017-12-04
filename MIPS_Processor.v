@@ -97,6 +97,8 @@ wire [31:0] RamtoMuxToReg;
 wire [31:0] FromMuxToReg_wire;
 wire [31:0] FromMuxJumptoJr_wire;
 wire [31:0] Address_RAM;
+wire [14:0] Megawire;
+wire [14:0]Megawire_wire;
 
 wire [31:0] Instruction_wire_IFID;
 wire [31:0] PC_wire_IFID;
@@ -137,6 +139,10 @@ wire [31:0] ReadDataRAM_wire_WB;
 wire [31:0] ALURes_wire_WB;
 wire [4:0] WriteRegister_wire_WB;
 wire [31:0] PCValue_wire_WB;
+
+wire MUX_HazardMegaMux_wire;
+wire IFID_Write_wire;
+wire PCWrite_wire ;
 
 integer ALUStatus;
 
@@ -209,6 +215,7 @@ WB:
 PC_Register
 ProgramCounter
 (
+	.controlfromhazard_PC(PCWrite_wire),
 	.clk(clk),
 	.reset(reset),
 	.NewPC(BranchANDJump_wire),   //Este valor fue modificado para la tarea 7  PC_4_wire
@@ -251,7 +258,7 @@ IFID
 	.reset(reset),
 	.PCValue_IFID(Adder_to_Ader_wire),
 	.Instruction_IFID(Instruction_wire),
-	
+	.hazard_unit(IFID_Write_wire),	
 	
 	////Datos
 	. DataOutputPCValue_IFID(PC_wire_IFID),
@@ -261,6 +268,7 @@ IFID
 
 //******************************************************************/
 //******************************************************************/
+
 //******************************************************************/
 
 
@@ -271,7 +279,21 @@ IFID
     .DataOutput(ShiftLeft_Jump_wire1)
 );
 
+HazardUnit
+HazardU
+(
+	.MEM_IDEX(M_IDEX),
+	
 
+
+	.IFID_RT(Instruction_wire_IFID[20:16]),
+	.IFID_RS(Instruction_wire_IFID[25:21]),
+	.IDEX_Rt(Instruction_wire_IDEX[20:16]),
+	
+	.MUX_HazardMegaMux(MUX_HazardMegaMux_wire),
+	.IFID_Write(IFID_Write_wire),
+	.PCWrite (PCWrite_wire)
+);
 
 Control
 ControlUnit
@@ -289,6 +311,18 @@ ControlUnit
 	.MemWrite(MemWrite_wire)
 );
 
+Multiplexer2to1
+#(
+	.NBits(32)
+)
+MUX_ForHazardUnit
+(
+	.Selector(MUX_HazardMegaMux_wire),
+	.MUX_Data0(Megawire), //Wire con todos los datos de control del control unit
+	.MUX_Data1(0),
+	
+	.MUX_Output(Megawire_wire)
+);
 
 
 RegisterFile
@@ -329,21 +363,21 @@ IDEX
 	.reset(reset),
 	
 	//WB:
-	.MemtoReg(MemtoReg_wire),
-	.RegWrite(RegWrite_wire),
+	.MemtoReg(Megawire_wire[1:0]),
+	.RegWrite(Megawire_wire[2]),
 	
 	//M:
-	.BranchNE(BranchNE_wire),
-	.BranchEQ(BranchEQ_wire),	
-	.MemRead(MemRead_wire),
-	.MemWrite(MemWrite_wire),
-	///.Jump(Jump_wire),  
+	.BranchNE(Megawire_wire[3]),
+	.BranchEQ(Megawire_wire[4]),	
+	.MemRead(Megawire_wire[5]),
+	.MemWrite(Megawire_wire[6]),
+	///.Jump(Megawire_wire[7]),  
 	///.Jr(JrControl_wire),
 	
 	//EX:
-	.ALUOp(ALUOp_wire),
-	.ALUSrc(ALUSrc_wire),	
-	.RegDst(Reg_Dst_wire),
+	.ALUOp(Megawire_wire[11:8]),
+	.ALUSrc(Megawire_wire[12]),	
+	.RegDst(Megawire_wire[14:13]),
 	
 	//Datos
 	.DataInputPCValue_IDEX(PC_wire_IFID),
@@ -694,6 +728,23 @@ MUX_ToRegisterFile
 
 assign ShiftInstMemory = {{PC_wire_IFID[31:28]},{ShiftLeft_Jump_wire1}};
 assign MemtoShift = {{6'b0},{Instruction_wire_IFID[25:0]}};	
+
+assign Megawire = {{Reg_Dst_wire},{ALUSrc_wire},{ALUOp_wire},{Jump_wire},{MemWrite_wire},{MemRead_wire},{BranchEQ_wire},{BranchNE_wire},{RegWrite_wire},{MemtoReg_wire}};
+//WB:
+/*	.MemtoReg(MemtoReg_wire), 1:0
+	.RegWrite(RegWrite_wire),	2
+	
+	//M:
+	.BranchNE(BranchNE_wire),	3
+	.BranchEQ(BranchEQ_wire),	4
+	.MemRead(MemRead_wire),		5
+	.MemWrite(MemWrite_wire),	6
+	///.Jump(Jump_wire),  		7
+	
+	//EX:
+	.ALUOp(ALUOp_wire),			11:8
+	.ALUSrc(ALUSrc_wire),		12
+	.RegDst(Reg_Dst_wire),		14:13*/
 
 
 endmodule
